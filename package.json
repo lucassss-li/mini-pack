@@ -2,7 +2,7 @@
     "name": "mini-pack",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "./src/lib/webpack.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
@@ -28,5 +28,8 @@
             "eslint",
             "prettier --write"
         ]
+    },
+    "dependencies": {
+        "tapable": "1"
     }
 }
