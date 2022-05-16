@@ -1,5 +1,6 @@
 const Compiler = require('./Compiler.js')
 const NodeEnvironmentPlugin = require('./node/NodeEnvironmentPlugin.js')
+const WebpackOptionsApply = require('./WebpackOptionsApply.js')
 const webpack = function (options) {
     //STEP:1、实例化compiler对象
     const compiler = new Compiler(options.context)
@@ -12,8 +13,9 @@ const webpack = function (options) {
             plugin.apply(compiler)
         }
     }
-    // TODO:4、挂载内置plugins至compiler
-    // compiler.options = new WebpackOptionsApply().process(options, compiler)
+    // TODO:4、依据配置项挂载内置plugins至compiler
+    compiler.options = new WebpackOptionsApply().process(options, compiler)
+
     return compiler
 }
 module.exports = webpack
