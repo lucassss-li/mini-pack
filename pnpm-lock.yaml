@@ -3,9 +3,9 @@ lockfileVersion: 5.3
 specifiers:
   '@babel/core': ^7.17.12
   '@babel/generator': ^7.17.12
+  '@babel/parser': ^7.17.12
   '@babel/traverse': ^7.17.12
   '@babel/types': ^7.17.12
-  babylon: ^6.18.0
   ejs: ^3.1.8
   eslint: ^8.15.0
   eslint-config-prettier: ^8.5.0
@@ -19,9 +19,9 @@ specifiers:
 dependencies:
   '@babel/core': 7.17.12
   '@babel/generator': 7.17.12
+  '@babel/parser': 7.17.12
   '@babel/traverse': 7.17.12
   '@babel/types': 7.17.12
-  babylon: 6.18.0
   ejs: 3.1.8
   mkdirp: 1.0.4
   neo-async: 2.6.2
@@ -378,11 +378,6 @@ packages:
 
   /async/3.2.3:
     resolution: {integrity: sha512-spZRyzKL5l5BZQrr/6m/SqFdBN0q3OCI0f9rjfBzCMBIP4p75P620rR3gTmaksNOhmzgdxcaxdNfMy6anrbM0g==}
-    dev: false
-
-  /babylon/6.18.0:
-    resolution: {integrity: sha512-q/UEjfGJ2Cm3oKV71DJz9d25TPnq5rhBVL2Q4fA5wcC3jcrdn7+SssEybFIxwAvvP+YCsCYNKughoF33GxgycQ==}
-    hasBin: true
     dev: false
 
   /balanced-match/1.0.2:

@@ -1,8 +1,8 @@
-const babylon = require('babylon')
+const babelParser = require('@babel/parser')
 const { Tapable } = require('tapable')
 class Parser extends Tapable {
     parse(source) {
-        return babylon.parse(source, {
+        return babelParser.parse(source, {
             sourceType: 'module',
             plugins: ['dynamicImport'],
         })

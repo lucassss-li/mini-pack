@@ -32,9 +32,9 @@
     "dependencies": {
         "@babel/core": "^7.17.12",
         "@babel/generator": "^7.17.12",
+        "@babel/parser": "^7.17.12",
         "@babel/traverse": "^7.17.12",
         "@babel/types": "^7.17.12",
-        "babylon": "^6.18.0",
         "ejs": "^3.1.8",
         "mkdirp": "^1.0.4",
         "neo-async": "^2.6.2",
