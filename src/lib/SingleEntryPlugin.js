@@ -9,8 +9,7 @@ class SingleEntryPlugin {
             'SingleEntryPlugin',
             (compilation, callback) => {
                 const { context, entry, name } = this
-                console.log('make 执行', context, entry, name, callback)
-                // compilation.addEntry(context, entry, name, callback)
+                compilation.addEntry(context, entry, name, callback)
             },
         )
     }

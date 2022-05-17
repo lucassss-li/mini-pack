@@ -1,5 +1,4 @@
 const {
-    Tapable,
     AsyncSeriesHook,
     AsyncParallelHook,
     SyncBailHook,
@@ -8,9 +7,9 @@ const {
 
 const NormalModuleFactory = require('./NormalModuleFactory.js')
 const Compilation = require('./Compilation.js')
-class Compiler extends Tapable {
+const Stats = require('./Stats.js')
+class Compiler {
     constructor(context) {
-        super(context)
         this.context = context
         this.hooks = {
             done: new AsyncSeriesHook(['stats']),
@@ -29,41 +28,29 @@ class Compiler extends Tapable {
         }
     }
     run(callback) {
-        console.log('run 方法执行了')
         const finalCallback = function (err, stats) {
             callback(err, stats)
         }
         const onCompiled = function (err, compilation) {
-            console.log('onCompiled', compilation)
-            finalCallback(err, {
-                toJson() {
-                    return {
-                        entries: [],
-                        chunks: [],
-                        modules: [],
-                        assets: [],
-                    }
-                },
-            })
+            finalCallback(err, new Stats(compilation))
         }
         this.hooks.beforeRun.callAsync(this, err => {
-            if (err) return callback(err)
+            if (err) return finalCallback(err)
             this.hooks.run.callAsync(this, err => {
-                if (err) return callback(err)
+                if (err) return finalCallback(err)
                 this.compile(onCompiled)
             })
         })
     }
     compile(callback) {
-        callback()
         const params = this.newCompilationParams()
         this.hooks.beforeCompile.callAsync(params, err => {
             if (err) return callback(err)
             this.hooks.compile.call(params)
-            const compilation = this.newCompilation()
+            const compilation = this.newCompilation(params)
             this.hooks.make.callAsync(compilation, err => {
                 if (err) return callback(err)
-                console.log('make钩子触发了')
+                callback(err, compilation)
             })
         })
     }
@@ -73,12 +60,14 @@ class Compiler extends Tapable {
         }
         return params
     }
-    newCompilation() {
+    newCompilation(params) {
         const compilation = this.createCompilation()
+        this.hooks.thisCompilation.call(compilation, params)
+        this.hooks.compilation.call(compilation, params)
         return compilation
     }
     createCompilation() {
-        return new Compilation(this.compile)
+        return new Compilation(this)
     }
 }
 module.exports = Compiler

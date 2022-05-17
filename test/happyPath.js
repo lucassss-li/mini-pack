@@ -4,7 +4,10 @@ const options = require('./webpack.config.js')
 const compiler = webpack(options)
 
 compiler.run((err, stats) => {
-    console.log('执行完毕',err)
+    if (err) {
+        console.log(err)
+    }
+    console.log('执行完毕')
     console.log(
         stats.toJson({
             entries: true,
