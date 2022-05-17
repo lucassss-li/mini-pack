@@ -14,7 +14,7 @@ const webpack = function (options) {
         }
     }
     // TODO:4、依据配置项挂载内置plugins至compiler
-    compiler.options = new WebpackOptionsApply().process(options, compiler)
+    new WebpackOptionsApply().process(options, compiler)
 
     return compiler
 }

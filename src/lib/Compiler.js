@@ -5,6 +5,9 @@ const {
     SyncHook,
 } = require('tapable')
 
+const path = require('path')
+const mkdirp = require('mkdirp')
+
 const NormalModuleFactory = require('./NormalModuleFactory.js')
 const Compilation = require('./Compilation.js')
 const Stats = require('./Stats.js')
@@ -25,20 +28,40 @@ class Compiler {
             compile: new SyncHook(['params']),
             make: new AsyncParallelHook(['compilation']),
             afterCompile: new AsyncSeriesHook(['compilation']),
+
+            emit: new AsyncSeriesHook(['compilation']),
         }
+    }
+    emitAssets(compilation, callback) {
+        const emitFiles = err => {
+            const assets = compilation.assets
+            const outputPath = this.options.output.path
+            for (const file in assets) {
+                const source = assets[file]
+                const targetPath = path.posix.join(outputPath, file)
+                this.outputFileSystem.writeFileSync(targetPath, source, 'utf8')
+            }
+            callback(err)
+        }
+        this.hooks.emit.callAsync(compilation, err => {
+            mkdirp.sync(this.options.output.path)
+            emitFiles(err)
+        })
     }
     run(callback) {
         const finalCallback = function (err, stats) {
             callback(err, stats)
         }
-        const onCompiled = function (err, compilation) {
-            finalCallback(err, new Stats(compilation))
+        const onCompiled = (err, compilation) => {
+            this.emitAssets(compilation, err => {
+                finalCallback(err, new Stats(compilation))
+            })
         }
         this.hooks.beforeRun.callAsync(this, err => {
             if (err) return finalCallback(err)
             this.hooks.run.callAsync(this, err => {
                 if (err) return finalCallback(err)
-                this.compile(onCompiled)
+                this.compile(onCompiled, finalCallback)
             })
         })
     }
@@ -50,7 +73,12 @@ class Compiler {
             const compilation = this.newCompilation(params)
             this.hooks.make.callAsync(compilation, err => {
                 if (err) return callback(err)
-                callback(err, compilation)
+                compilation.seal(err => {
+                    if (err) return callback(err)
+                    this.hooks.afterCompile.callAsync(compilation, err => {
+                        callback(err, compilation)
+                    })
+                })
             })
         })
     }

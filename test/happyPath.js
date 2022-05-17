@@ -7,7 +7,6 @@ compiler.run((err, stats) => {
     if (err) {
         console.log(err)
     }
-    console.log('执行完毕')
     console.log(
         stats.toJson({
             entries: true,
