@@ -2,12 +2,15 @@ const Compiler = require('./Compiler')
 const { applyWebpackOptionsBaseDefaults } = require('./defaults')
 const NodeEnvironmentPlugin = require('./NodeEnvironmentPlugin')
 const WebpackOptionsApply = require('./WebpackOptionsApply')
+const { getNormalizedWebpackOptions } = require('./config/normalization')
 
-module.export = function webpack(options, callback) {
+module.exports = function webpack(options, callback) {
     const compiler = createCompiler(options)
     compiler.run(callback)
 }
-const createCompiler = options => {
+const createCompiler = rawOptions => {
+    // STEP:格式化配置
+    const options = getNormalizedWebpackOptions(rawOptions)
     applyWebpackOptionsBaseDefaults(options)
     // STEP:实例化compiler
     const compiler = new Compiler(options.context, options)
