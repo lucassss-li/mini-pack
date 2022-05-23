@@ -3,6 +3,8 @@ class Compilation {
         this.dependencyFactories = new Map()
         this.entries = new Map()
         this.compiler = null
+        this.modules = new Set()
+        this.builtModules = new Set()
     }
     addEntry(context, entry, options, callback) {
         this._addEntryItem(context, entry, 'dependencies', options, callback)
@@ -59,7 +61,7 @@ class Compilation {
         )
     }
     handleModuleCreation(
-        { factory, dependencies, originModule, context, recursive = true },
+        { factory, dependencies, originModule, context },
         callback,
     ) {
         this.factorizeModule(
@@ -80,31 +82,17 @@ class Compilation {
                     if (err) {
                         return callback(err)
                     }
-                    this.handleModuleBuildAndDependencies(
-                        originModule,
-                        module,
-                        recursive,
-                        callback,
-                    )
+                    this.handleModuleBuildAndDependencies(module, callback)
                 })
             },
         )
     }
     factorizeModule(
-        { factory, dependencies, originModule, contextInfo, context },
+        { factory, dependencies, originModule, context },
         callback,
     ) {
         factory.create(
             {
-                contextInfo: {
-                    issuer: originModule ? originModule.nameForCondition() : '',
-                    issuerLayer: originModule ? originModule.layer : null,
-                    compiler: this.compiler.name,
-                    ...contextInfo,
-                },
-                resolveOptions: originModule
-                    ? originModule.resolveOptions
-                    : undefined,
                 context: context
                     ? context
                     : originModule
@@ -116,20 +104,16 @@ class Compilation {
                 if (err) {
                     return callback(err)
                 }
-                callback(null, result.module)
+                callback(null, result)
             },
         )
     }
     addModule(module, callback) {
-        const identifier = module.identifier()
-        const alreadyAddedModule = this._modules.get(identifier)
+        const alreadyAddedModule = this.modules.has(module)
         if (alreadyAddedModule) {
             return callback(null, alreadyAddedModule)
         }
-
-        this._modules.set(identifier, module)
         this.modules.add(module)
-
         callback(null, module)
     }
     handleModuleBuildAndDependencies(module, callback) {
@@ -146,21 +130,10 @@ class Compilation {
         })
     }
     buildModule(module, callback) {
-        module.needBuild(
-            {
-                compilation: this,
-            },
-            (err, needBuild) => {
-                if (err) return callback(err)
-                if (!needBuild) {
-                    return callback()
-                }
-                this.builtModules.add(module)
-                module.build((err, callback) => {
-                    return callback(err, callback)
-                })
-            },
-        )
+        this.builtModules.add(module)
+        module.build(err => {
+            return callback(err)
+        })
     }
     processModuleDependencies(module, callback) {
         if (module.dependencies.length === 0) {
