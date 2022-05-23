@@ -14,6 +14,7 @@ const createCompiler = rawOptions => {
     applyWebpackOptionsBaseDefaults(options)
     // STEP:实例化compiler
     const compiler = new Compiler(options.context, options)
+    compiler.options = options
     // STEP:添加node环境下的文件读写功能
     new NodeEnvironmentPlugin().apply(compiler)
     // STEP:挂载用户配置的plugin
