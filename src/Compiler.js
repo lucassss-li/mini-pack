@@ -78,7 +78,8 @@ class Compiler {
             const compilation = this.newCompilation(params)
             // STEP:触发 make 钩子，调用entryPlugin，注意这个插件是在entryOption阶段根据入口配置挂载的
             this.hooks.make.callAsync(compilation, err => {
-                console.log('start make', err)
+                if (err) return onCompiled(err)
+                console.log(compilation.moduleGraph)
             })
         })
     }

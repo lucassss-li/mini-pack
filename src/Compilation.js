@@ -1,3 +1,4 @@
+const ModuleGraph = require('./ModuleGraph.js')
 class Compilation {
     constructor() {
         this.dependencyFactories = new Map()
@@ -5,6 +6,7 @@ class Compilation {
         this.compiler = null
         this.modules = new Set()
         this.builtModules = new Set()
+        this.moduleGraph = new ModuleGraph()
     }
     addEntry(context, entry, options, callback) {
         this._addEntryItem(context, entry, 'dependencies', options, callback)
@@ -81,6 +83,10 @@ class Compilation {
                 this.addModule(newModule, (err, module) => {
                     if (err) {
                         return callback(err)
+                    }
+                    for (let i = 0; i < dependencies.length; i++) {
+                        const dependency = dependencies[i]
+                        this.moduleGraph.setResolvedModule(dependency, module)
                     }
                     this.handleModuleBuildAndDependencies(module, callback)
                 })
