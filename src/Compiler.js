@@ -24,6 +24,10 @@ class Compiler {
             afterDone: new SyncHook(['stats']),
         }
     }
+    emitAssets(compilation, callback) {
+        console.log(compilation.chunks)
+        callback()
+    }
     run(callback) {
         const finalCallback = (err, stats) => {
             if (err) {
@@ -33,7 +37,11 @@ class Compiler {
             this.hooks.afterDone.call(stats)
         }
         const onCompiled = (err, compilation) => {
-            finalCallback(err, compilation)
+            if (err) return finalCallback(err)
+            this.emitAssets(compilation, err => {
+                if (err) return finalCallback(err)
+                finalCallback(err, compilation)
+            })
         }
         const run = () => {
             this.hooks.beforeRun.callAsync(this, err => {
@@ -50,8 +58,6 @@ class Compiler {
         const normalModuleFactory = new NormalModuleFactory({
             context: this.options.context,
             fs: this.inputFileSystem,
-            // TODO:配置resolver
-            // resolverFactory: this.resolverFactory,
             options: this.options.module,
         })
         return normalModuleFactory
@@ -79,7 +85,8 @@ class Compiler {
             // STEP:触发 make 钩子，调用entryPlugin，注意这个插件是在entryOption阶段根据入口配置挂载的
             this.hooks.make.callAsync(compilation, err => {
                 if (err) return onCompiled(err)
-                console.log(compilation.moduleGraph)
+                compilation.seal()
+                onCompiled(err, compilation)
             })
         })
     }

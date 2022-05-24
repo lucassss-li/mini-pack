@@ -1,12 +1,19 @@
 const ModuleGraph = require('./ModuleGraph.js')
+const ModuleDependency = require('./dependencies/ModuleDependency')
+const Chunk = require('./Chunk')
 class Compilation {
-    constructor() {
+    constructor(compiler, params) {
         this.dependencyFactories = new Map()
         this.entries = new Map()
-        this.compiler = null
+        this.compiler = compiler
         this.modules = new Set()
         this.builtModules = new Set()
         this.moduleGraph = new ModuleGraph()
+        this.chunks = []
+        this.dependencyFactories.set(
+            ModuleDependency,
+            params.normalModuleFactory,
+        )
     }
     addEntry(context, entry, options, callback) {
         this._addEntryItem(context, entry, 'dependencies', options, callback)
@@ -137,7 +144,7 @@ class Compilation {
     }
     buildModule(module, callback) {
         this.builtModules.add(module)
-        module.build(err => {
+        module.build(this, err => {
             return callback(err)
         })
     }
@@ -146,9 +153,26 @@ class Compilation {
             callback()
         } else {
             for (const dependency of module.dependencies) {
-                this.handleModuleCreation(dependency, err => {
-                    return callback(err)
-                })
+                this.addModuleTree(
+                    { context: module.context, dependency },
+                    err => {
+                        return callback(err)
+                    },
+                )
+            }
+        }
+    }
+    seal() {
+        for (const [name, entryData] of this.entries) {
+            const chunk = new Chunk(name)
+            this.chunks.push(chunk)
+            const entryDependencies = entryData.dependencies[0]
+            const entryModule =
+                this.moduleGraph._dependencyMap.get(entryDependencies).module
+            chunk.addModule(entryModule.rawRequest, entryModule._source, true)
+            for (const module of this.modules) {
+                const fn = new Function('module', module._source)
+                chunk.addModule(module.rawRequest, fn)
             }
         }
     }

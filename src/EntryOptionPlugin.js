@@ -13,7 +13,6 @@ class EntryOptionPlugin {
         for (const name of Object.keys(entry)) {
             const desc = entry[name]
             const options = { name }
-            console.log(desc.import)
             for (const entry of desc.import) {
                 new EntryPlugin(context, entry, options).apply(compiler)
             }
